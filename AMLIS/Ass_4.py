@@ -1,273 +1,81 @@
-# =================================================
+# ===============================================
 # Roll no : 60       PRN: 0124UITM1060
 # Name : Kshitij Shinde
 # Dept. : Information Technology (Third Year)
-# ==================================================
-# Assignment 3:
-# Credit Risk Assessment using Random Forest Classifier
-# ==================================================
+# ===============================================
+# Assignment 4:
+# Loan Application Prediction using Gaussian Naive Bayes
+# ===============================================
 
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import accuracy_score, confusion_matrix, f1_score , recall_score, precision_score
+import matplotlib.pyplot as plt
 
-from sklearn.metrics import (
-    confusion_matrix,
-    accuracy_score,
-    precision_score,
-    recall_score,
-    f1_score,
-    classification_report,
-    roc_curve,
-    roc_auc_score
-)
-
-
-# --------------------------------------------------
-# STEP 1: LOAD DATASET
-# --------------------------------------------------
-
+# Load dataset
 df = pd.read_csv("loan_data.csv")
 
-print("First 5 rows:")
-print(df.head())
+# Handle missing values
+for c in df.select_dtypes(include="object"):
+    df[c] = df[c].fillna(df[c].mode()[0])
 
-print("\nDataset information:")
-print(df.info())
+for c in df.select_dtypes(exclude="object"):
+    df[c] = df[c].fillna(df[c].median())
 
-print("\nMissing values:")
-print(df.isnull().sum())
+# Convert Dependents
+df["Dependents"] = df["Dependents"].replace("3+", "3")
 
-print("\nTarget distribution:")
-print(df["default"].value_counts())
+# Convert target
+df["Loan_Status"] = df["Loan_Status"].map({"Y": 1, "N": 0})
 
+# Remove Loan_ID
+df.drop("Loan_ID", axis=1, inplace=True)
+print(df.shape)
+# Convert categorical columns
+df = pd.get_dummies(df, drop_first=True)
 
-# --------------------------------------------------
-# STEP 2: SELECT FEATURES AND TARGET
-# --------------------------------------------------
+# Features and target
+X = df.drop("Loan_Status", axis=1)
+y = df["Loan_Status"]
 
-features = [
-    "Age",
-    "Income",
-    "Loan Amount",
-    "Credit Score",
-    "Employment Duration",
-    "Debt-to-Income Ratio"
-]
-
-X = df[features]
-y = df["default"]
-
-
-# --------------------------------------------------
-# STEP 3: HANDLE MISSING VALUES
-# --------------------------------------------------
-
-X = X.fillna(X.median())
-
-
-# --------------------------------------------------
-# STEP 4: TRAIN-TEST SPLIT
-# --------------------------------------------------
-
+# Split data
 X_train, X_test, y_train, y_test = train_test_split(
-    X,
-    y,
-    test_size=0.20,
-    random_state=42,
-    stratify=y
+    X, y, test_size=0.30, random_state=42
 )
 
-
-# --------------------------------------------------
-# STEP 5: FEATURE SCALING
-# --------------------------------------------------
-
-scaler = StandardScaler()
-
-X_train = scaler.fit_transform(X_train)
-X_test = scaler.transform(X_test)
-
-
-# --------------------------------------------------
-# STEP 6: BUILD RANDOM FOREST MODEL
-# --------------------------------------------------
-
-model = RandomForestClassifier(
-    n_estimators=100,
-    random_state=42
-)
-
-
-# --------------------------------------------------
-# STEP 7: TRAIN MODEL
-# --------------------------------------------------
-
+# Naive Bayes
+model = GaussianNB()
 model.fit(X_train, y_train)
 
-
-# --------------------------------------------------
-# STEP 8: MAKE PREDICTIONS
-# --------------------------------------------------
-
+# Prediction
 y_pred = model.predict(X_test)
 
+# Evaluation
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("F1 Score:", f1_score(y_test, y_pred))
+print("Recall Score:", recall_score(y_test, y_pred))
+print("Precision Score:", precision_score(y_test, y_pred))
 
-# --------------------------------------------------
-# STEP 9: CONFUSION MATRIX
-# --------------------------------------------------
+print("Confusion Matrix:")
+print(confusion_matrix(y_test, y_pred))
 
+# Graph: Confusion Matrix
 cm = confusion_matrix(y_test, y_pred)
 
-print("\nConfusion Matrix:")
-print(cm)
-
 plt.figure(figsize=(6, 5))
-
-sns.heatmap(
-    cm,
-    annot=True,
-    fmt="d",
-    cmap="Blues",
-    xticklabels=["No Default", "Default"],
-    yticklabels=["No Default", "Default"]
-)
-
-plt.xlabel("Predicted")
-plt.ylabel("Actual")
+plt.imshow(cm, cmap="Blues")
 plt.title("Confusion Matrix")
-plt.show()
+plt.colorbar()
 
+plt.xticks([0, 1], ["Not Approved", "Approved"])
+plt.yticks([0, 1], ["Not Approved", "Approved"])
+plt.xlabel("Predicted Label")
+plt.ylabel("Actual Label")
 
-# --------------------------------------------------
-# STEP 10: ACCURACY
-# --------------------------------------------------
+for i in range(2):
+    for j in range(2):
+        plt.text(j, i, cm[i, j], ha="center", va="center", color="black")
 
-accuracy = accuracy_score(y_test, y_pred)
-
-print("\nAccuracy:", accuracy)
-
-
-# --------------------------------------------------
-# STEP 11: PRECISION
-# --------------------------------------------------
-
-precision = precision_score(
-    y_test,
-    y_pred,
-    zero_division=0
-)
-
-print("Precision:", precision)
-
-
-# --------------------------------------------------
-# STEP 12: RECALL
-# --------------------------------------------------
-
-recall = recall_score(
-    y_test,
-    y_pred,
-    zero_division=0
-)
-
-print("Recall:", recall)
-
-
-# --------------------------------------------------
-# STEP 13: F1-SCORE
-# --------------------------------------------------
-
-f1 = f1_score(
-    y_test,
-    y_pred,
-    zero_division=0
-)
-
-print("F1-Score:", f1)
-
-
-# --------------------------------------------------
-# STEP 14: CLASSIFICATION REPORT
-# --------------------------------------------------
-
-print("\nClassification Report:")
-print(
-    classification_report(
-        y_test,
-        y_pred,
-        zero_division=0
-    )
-)
-
-
-# --------------------------------------------------
-# STEP 15: ROC CURVE AND AUC
-# --------------------------------------------------
-
-y_prob = model.predict_proba(X_test)[:, 1]
-
-fpr, tpr, thresholds = roc_curve(
-    y_test,
-    y_prob
-)
-
-auc = roc_auc_score(
-    y_test,
-    y_prob
-)
-
-print("ROC-AUC Score:", auc)
-
-
-# Plot ROC Curve
-
-plt.figure(figsize=(7, 5))
-
-plt.plot(
-    fpr,
-    tpr,
-    label=f"AUC = {auc:.2f}"
-)
-
-plt.plot(
-    [0, 1],
-    [0, 1],
-    linestyle="--"
-)
-
-plt.xlabel("False Positive Rate")
-plt.ylabel("True Positive Rate")
-plt.title("ROC Curve")
-plt.legend()
-plt.show()
-
-
-# --------------------------------------------------
-# STEP 16: FEATURE IMPORTANCE
-# --------------------------------------------------
-
-importance = pd.Series(
-    model.feature_importances_,
-    index=features
-).sort_values(ascending=False)
-
-print("\nFeature Importance:")
-print(importance)
-
-plt.figure(figsize=(8, 5))
-
-importance.plot(
-    kind="bar"
-)
-
-plt.xlabel("Features")
-plt.ylabel("Importance")
-plt.title("Random Forest Feature Importance")
-plt.xticks(rotation=45)
 plt.tight_layout()
 plt.show()
