@@ -1,92 +1,32 @@
-# ===============================================
-# Roll no : 60       PRN: 0124UITM1060
-# Name : Kshitij Shinde
-# Dept. : Information Technology (Third Year)
-# ===============================================
-# Assignment 5:
-# Support Vector Machine algorithm using python.
-# ===============================================
-
-import pandas as pd
-import matplotlib.pyplot as plt
-
+# Import scikit-learn dataset library and model modules
+from sklearn import datasets
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.svm import SVC
-from sklearn.metrics import accuracy_score
-from sklearn.inspection import DecisionBoundaryDisplay
+from sklearn import svm
+from sklearn import metrics
 
-# Load dataset
-df = pd.read_csv("UniversalBank.csv")
+# Load breast cancer dataset
+cancer = datasets.load_breast_cancer()
 
-print("Dataset Shape:", df.shape)
-print(df.head())
+# Exploring dataset features and labels
+print("Features: ", cancer.feature_names)
+print("Labels: ", cancer.target_names)
+print("Data Shape: ", cancer.data.shape)
 
-# Select only 2 features for 2D graph
-X = df[["Income", "CCAvg"]]
-
-# Target column
-y = df["Personal Loan"]
-
-# Split dataset
+# Split dataset into training set (70%) and test set (30%)
 X_train, X_test, y_train, y_test = train_test_split(
-    X,
-    y,
-    test_size=0.30,
-    random_state=42,
-    stratify=y
+    cancer.data, cancer.target, test_size=0.3, random_state=109
 )
 
-# Feature Scaling
-scaler = StandardScaler()
+# Create a SVM Classifier object with a linear kernel
+clf = svm.SVC(kernel='linear')
 
-X_train_scaled = scaler.fit_transform(X_train)
-X_test_scaled = scaler.transform(X_test)
+# Train the model using the training sets
+clf.fit(X_train, y_train)
 
-# Create Linear SVM model
-model = SVC(kernel="linear")
+# Predict the response for test dataset
+y_pred = clf.predict(X_test)
 
-# Train model
-model.fit(X_train_scaled, y_train)
-
-# Prediction
-y_pred = model.predict(X_test_scaled)
-
-# Accuracy
-accuracy = accuracy_score(y_test, y_pred)
-
-print("\nAccuracy:", round(accuracy * 100, 2), "%")
-
-# Plot decision boundary
-plt.figure(figsize=(10, 6))
-
-DecisionBoundaryDisplay.from_estimator(
-    model,
-    X_train_scaled,
-    response_method="predict",
-    alpha=0.3,
-    cmap="coolwarm"
-)
-
-# Plot Fail / No Personal Loan
-plt.scatter(
-    X_train_scaled[y_train == 0, 0],
-    X_train_scaled[y_train == 0, 1],
-    label="No Personal Loan",
-    edgecolors="black"
-)
-
-# Plot Personal Loan
-plt.scatter(
-    X_train_scaled[y_train == 1, 0],
-    X_train_scaled[y_train == 1, 1],
-    label="Personal Loan",
-    edgecolors="black"
-)
-
-plt.xlabel("Income (Scaled)")
-plt.ylabel("CCAvg (Scaled)")
-plt.title("Linear SVM - Personal Loan Classification")
-plt.legend()
-
-plt.show()
+# Model Evaluation Metrics
+print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
+print("Precision:", metrics.precision_score(y_test, y_pred))
+print("Recall:", metrics.recall_score(y_test, y_pred))
