@@ -63,19 +63,4 @@ print(confusion_matrix(y_test, y_pred))
 # Graph: Confusion Matrix
 cm = confusion_matrix(y_test, y_pred)
 
-plt.figure(figsize=(6, 5))
-plt.imshow(cm, cmap="Blues")
-plt.title("Confusion Matrix")
-plt.colorbar()
-
-plt.xticks([0, 1], ["Not Approved", "Approved"])
-plt.yticks([0, 1], ["Not Approved", "Approved"])
-plt.xlabel("Predicted Label")
-plt.ylabel("Actual Label")
-
-for i in range(2):
-    for j in range(2):
-        plt.text(j, i, cm[i, j], ha="center", va="center", color="black")
-
-plt.tight_layout()
-plt.show()
+print("Confusion Matrix:\n", cm)

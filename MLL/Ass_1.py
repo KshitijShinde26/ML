@@ -1,12 +1,3 @@
-# ===============================================
-# Roll no : 60       PRN: 0124UITM1060
-# Name : Kshitij Shinde
-# Dept. : Information Technology (Third Year)
-# ===============================================
-# Assignment 1:
-# Data Cleaning and Visualization for Retail Sales
-# ===============================================
-
 # Import Libraries
 
 import pandas as pd
@@ -141,24 +132,6 @@ if "Sales" in df.columns:
     plt.title("Boxplot of Sales")
     plt.show()
 
-# -----------------------------------------------
-# Detect Outliers using IQR
-# -----------------------------------------------
-
-if "Sales" in df.columns:
-
-    Q1 = df["Sales"].quantile(0.25)
-    Q3 = df["Sales"].quantile(0.75)
-
-    IQR = Q3 - Q1
-
-    lower = Q1 - 1.5 * IQR
-    upper = Q3 + 1.5 * IQR
-
-    cleaned_df = df[(df["Sales"] >= lower) & (df["Sales"] <= upper)]
-
-    print("\nOriginal Rows :", len(df))
-    print("Rows After Removing Outliers :", len(cleaned_df))
 
 # -----------------------------------------------
 # Scatter Plot
@@ -173,15 +146,3 @@ if "Sales" in df.columns and "Profit" in df.columns:
     plt.ylabel("Profit")
     plt.show()
 
-# -----------------------------------------------
-# Quantile (Q-Q) Plot
-# -----------------------------------------------
-
-if "Sales" in df.columns:
-
-    plt.figure(figsize=(6,4))
-    stats.probplot(df["Sales"], dist="norm", plot=plt)
-    plt.title("Q-Q Plot")
-    plt.show()
-
-print("\nData Preprocessing Completed Successfully.")
